@@ -1,4 +1,4 @@
-#include <join_server/join_server.h>
+#include <join_server_app/join_server.h>
 #include <boost/thread.hpp>
 
 int main(int argc, char **argv)
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     thread_group.join_all();
   }
   else
-    std::cout << "usage: join_server <port>" << std::endl;
+    std::cout << "usage: join_server_app <port>" << std::endl;
 
   return 0;
 }

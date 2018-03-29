@@ -1,4 +1,4 @@
-#include <join_server/join_server.h>
+#include <join_server_app/join_server.h>
 
 namespace js
 {

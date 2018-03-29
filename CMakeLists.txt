@@ -23,8 +23,8 @@ add_library(join_server_data_base
         )
 
 add_executable(join_server
-        join_server/main.cpp
-        join_server/join_server.cpp
+        join_server_app/main.cpp
+        join_server_app/join_server.cpp
         )
 target_link_libraries(join_server
         join_server_common
@@ -32,7 +32,7 @@ target_link_libraries(join_server
         )
 
 add_executable(join_client
-        join_client/main.cpp
+        join_client_app/main.cpp
         )
 target_link_libraries(join_client
         join_server_common

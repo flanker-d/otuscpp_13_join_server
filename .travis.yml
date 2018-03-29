@@ -1,0 +1,26 @@
+language: cpp
+before_script:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -y g++-5
+  - sudo apt-get install -y libboost-system-dev
+  - sudo apt-get install -y libboost-thread-dev
+  - sudo rm -f /usr/bin/gcc
+  - sudo rm -f /usr/bin/g++
+  - sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
+  - sudo ln -s /usr/bin/g++-5 /usr/bin/g++
+  - g++ -v
+
+script:
+  - cmake .
+  - cmake --build .
+  - cmake --build . --target package
+
+compiler: g++
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script:
+    - curl -T join_server-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb -uflanker-d:$BINTRAY_API_KEY "https://api.bintray.com/content/flankerd/otuscpp/13_join_server/$TRAVIS_BUILD_NUMBER/join_server-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
+    on:
+      branch: master

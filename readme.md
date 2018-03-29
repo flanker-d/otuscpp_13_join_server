@@ -1,3 +1,3 @@
-Bulk Server
+Join Server
 
-[![Build Status](https://travis-ci.org/flanker-d/otuscpp_12_bulk_server.svg?branch=master)](https://travis-ci.org/flanker-d/otuscpp_12_bulk_server)
+[![Build Status](https://travis-ci.org/flanker-d/otuscpp_13_join_server.svg?branch=master)](https://travis-ci.org/flanker-d/otuscpp_13_join_server)

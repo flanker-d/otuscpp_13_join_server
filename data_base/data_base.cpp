@@ -39,7 +39,7 @@ namespace db
     else if(cmd_type == "SYMMETRIC_DIFFERENCE")
       return symmetric_difference(parsed_commands);
     else
-      result::err();
+      return result::make_err("undefined command " + cmd_type);
   }
 
   result_t data_base::insert(const std::vector<std::string> &a_parsed_commands)

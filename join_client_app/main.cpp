@@ -10,18 +10,21 @@ class join_client : public common::interface<join_client>
       : m_client(common::tcp::create_client(a_ip, a_port, a_strand))
     {
       m_client->set_on_connected([this]{
-
+        m_is_connected = !m_is_connected;
+        if(!m_is_connected)
+            return;
         std::cout << "client_connected" << std::endl;
-
-        m_thread = std::thread([this]{test();});
+        if(!m_thread.joinable())
+          m_thread = std::thread([this]{test();});
 
       });
       m_client->set_on_disconnected([this]{
+        m_is_connected = false;
         std::cout << "client_disconnected" << std::endl;
         m_thread.join();
       });
       m_client->set_on_message([](const std::string& a_msg){
-        std::cout << "> " << a_msg;
+        std::cout << "< " << a_msg;
       });
 
       m_client->run();
@@ -32,97 +35,60 @@ class join_client : public common::interface<join_client>
       return std::make_shared<join_client>(a_ip, a_port, a_strand);
     }
 
+    void send_msg(const std::string& msg)
+    {
+      const int msec = 50;
+      std::cout << "> " + msg;
+      m_client->send_message(msg);
+      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+    }
+
   private:
     void test()
     {
-      const int msec = 250;
+      std::cout << "---------------------" << std::endl;
+
+      send_msg("INSERT A 0 test\n");
+      send_msg("TRUNCATE A\n");
 
       std::cout << "---------------------" << std::endl;
 
-      std::cout << "> INSERT A 0 test" << std::endl;
-      m_client->send_message("INSERT A 0 test\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> TRUNCATE A" << std::endl;
-      m_client->send_message("TRUNCATE A\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "---------------------" << std::endl;
-
-      std::cout << "> INSERT A 0 lean" << std::endl;
-      m_client->send_message("INSERT A 0 lean\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT A 0 understand" << std::endl;
-      m_client->send_message("INSERT A 0 understand\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT A 1 sweater" << std::endl;
-      m_client->send_message("INSERT A 1 sweater\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT A 2 frank" << std::endl;
-      m_client->send_message("INSERT A 2 frank\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT A 3 violation" << std::endl;
-      m_client->send_message("INSERT A 3 violation\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT A 4 quality" << std::endl;
-      m_client->send_message("INSERT A 4 quality\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT A 5 precision" << std::endl;
-      m_client->send_message("INSERT A 5 precision\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT B 3 proposal" << std::endl;
-      m_client->send_message("INSERT B 3 proposal\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT B 4 example" << std::endl;
-      m_client->send_message("INSERT B 4 example\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT B 5 lake" << std::endl;
-      m_client->send_message("INSERT B 5 lake\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT B 6 flour" << std::endl;
-      m_client->send_message("INSERT B 6 flour\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT B 7 wonder" << std::endl;
-      m_client->send_message("INSERT B 7 wonder\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-
-      std::cout << "> INSERT B 8 selection" << std::endl;
-      m_client->send_message("INSERT B 8 selection\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+      send_msg("WRONG_INSERT A 0 lean\n");
+      send_msg("INSERT A 0 lean\n");
+      send_msg("INSERT A 0 understand\n");
+      send_msg("INSERT A 1 sweater\n");
+      send_msg("INSERT A 2 frank\n");
+      send_msg("INSERT A 3 violation\n");
+      send_msg("INSERT A 4 quality\n");
+      send_msg("INSERT A 5 precision\n");
+      send_msg("INSERT B 3 proposal\n");
+      send_msg("INSERT B 4 example\n");
+      send_msg("INSERT B 5 lake\n");
+      send_msg("INSERT B 6 flour\n");
+      send_msg("INSERT B 7 wonder\n");
+      send_msg("INSERT B 8 selection\n");
 
       std::cout << "---------------------" << std::endl;
 
-      std::cout << "> INTERSECTION" << std::endl;
-      m_client->send_message("INTERSECTION\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+      send_msg("INTERSECTION\n");
 
       std::cout << "---------------------" << std::endl;
 
-      std::cout << "> SYMMETRIC_DIFFERENCE" << std::endl;
-      m_client->send_message("SYMMETRIC_DIFFERENCE\n");
-      std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+      send_msg("SYMMETRIC_DIFFERENCE\n");
+
+      std::cout << "---------------------" << std::endl;
     }
 
   private:
     common::tcp::iclient::ref m_client;
     std::thread m_thread;
+    bool m_is_connected = false;
 };
 
 int main(int argc, char** argv)
 {
   const std::string ip = "127.0.0.1";
-  const int port = 9000;
+  const int port = 9001;
 
   boost::asio::io_service io_service;
   boost::asio::io_service::strand strand(io_service);

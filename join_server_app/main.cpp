@@ -1,28 +1,29 @@
 #include <join_server_app/join_server.h>
-#include <boost/thread.hpp>
+#include <thread>
 
 int main(int argc, char **argv)
 {
   if(argc == 2)
   {
     boost::asio::io_service io_service;
-    boost::asio::io_service::strand strand(io_service);
 
-    int port = std::stoi(argv[1]);
+    common::tcp_server_params_t params;
+    params.use_strand = true;
+    params.port = std::stoi(argv[1]);
 
-    js::join_server::ptr server = std::make_unique<js::join_server>(port, strand);
+    js::join_server::ptr server = std::make_unique<js::join_server>(params, io_service);
 
-    boost::thread_group thread_group;
-    //int threads_count = boost::thread::hardware_concurrency();
-    int threads_count = 2;
+    std::vector<std::thread> thread_group;
+    int threads_count = std::thread::hardware_concurrency();
     for(int i = 0; i < threads_count; i++)
     {
-      thread_group.create_thread([&io_service](){
+      thread_group.emplace_back(std::thread([&io_service](){
         io_service.run();
-      });
+      }));
     }
 
-    thread_group.join_all();
+    for(auto& thr : thread_group)
+      thr.join();
   }
   else
     std::cout << "usage: join_server_app <port>" << std::endl;

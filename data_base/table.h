@@ -2,7 +2,7 @@
 
 #include <map>
 #include <set>
-#include <common/interface.h>
+#include <common/interface/interface.h>
 #include <data_base/result.h>
 
 namespace db

@@ -1,13 +1,13 @@
-#include <common/communications.h>
-#include <boost/thread.hpp>
+#include <common/communications/communications.h>
 #include <chrono>
+#include <iostream>
 #include <thread>
 
 class join_client : public common::interface<join_client>
 {
   public:
-    join_client(const std::string& a_ip, const int a_port, boost::asio::io_service::strand& a_strand)
-      : m_client(common::tcp::create_client(a_ip, a_port, a_strand))
+    join_client(common::tcp_client_params_t& a_params, boost::asio::io_service& a_io_service)
+      : m_client(common::tcp::create_client(a_params, a_io_service))
     {
       m_client->set_on_connected([this]{
         m_is_connected = !m_is_connected;
@@ -30,9 +30,9 @@ class join_client : public common::interface<join_client>
       m_client->run();
     }
 
-    static join_client::ref create_echo_client(const std::string& a_ip, const int a_port, boost::asio::io_service::strand& a_strand)
+    static join_client::ref create_echo_client(common::tcp_client_params_t& a_params, boost::asio::io_service& a_io_service)
     {
-      return std::make_shared<join_client>(a_ip, a_port, a_strand);
+      return std::make_shared<join_client>(a_params, a_io_service);
     }
 
     void send_msg(const std::string& msg)
@@ -87,24 +87,25 @@ class join_client : public common::interface<join_client>
 
 int main(int argc, char** argv)
 {
-  const std::string ip = "127.0.0.1";
-  const int port = 9001;
+  common::tcp_client_params_t params;
+  params.ip = "127.0.0.1";
+  params.port = 9000;
 
   boost::asio::io_service io_service;
-  boost::asio::io_service::strand strand(io_service);
 
-  auto client = join_client::create_echo_client(ip, port, strand);
+  auto client = join_client::create_echo_client(params, io_service);
 
-  boost::thread_group tgroup;
-  int cores_count = boost::thread::hardware_concurrency();
+  std::vector<std::thread> thread_group;
+  int cores_count = std::thread::hardware_concurrency();
   for(int i = 0; i < cores_count; i++)
   {
-    tgroup.create_thread([&io_service](){
+    thread_group.emplace_back(std::thread([&io_service](){
       io_service.run();
-    });
+    }));
   }
 
-  tgroup.join_all();
+  for(auto& thr : thread_group)
+    thr.join();
 
   return 0;
 }
